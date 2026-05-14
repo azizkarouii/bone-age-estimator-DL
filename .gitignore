@@ -1,0 +1,38 @@
+# Data
+data/
+*.csv
+*.png
+*.jpg
+*.jpeg
+
+# Models
+models/*.keras
+models/*.h5
+models/*.pt
+models/*.pth
+
+# Environment
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+.cache/
