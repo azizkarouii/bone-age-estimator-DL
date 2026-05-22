@@ -1,154 +1,194 @@
 # Estimation de l'âge osseux par Deep Learning
 
-Projet académique de Deep Learning basé sur le défi RSNA Bone Age. L'objectif est d'estimer l'âge osseux, exprimé en mois, à partir de radiographies de la main gauche d'enfants.
+Projet académique de Deep Learning basé sur le défi RSNA Bone Age. Le but est d'estimer l'âge osseux, exprimé en mois, à partir de radiographies de la main gauche d'enfants. Le projet couvre tout le pipeline, depuis l'exploration des données jusqu'à l'interprétation des prédictions et la préparation d'une démo de présentation.
 
-Le projet couvre le pipeline complet : exploration des données, prétraitement, augmentation, entraînement de modèles CNN, transfer learning, gestion du surapprentissage et interprétation des prédictions.
+## Vue d'ensemble
 
-## Objectifs
+Le travail compare plusieurs approches de régression d'images médicales :
 
-- Construire une baseline CNN simple.
-- Améliorer les performances avec Batch Normalization, Dropout, Early Stopping et régularisation L2.
-- Comparer une approche from scratch avec du transfer learning sur un modèle pré-entraîné.
-- Visualiser les résultats avec des courbes d'apprentissage, des scatter plots et Grad-CAM.
-- Préparer une démo Streamlit et une présentation orale claire.
+- une baseline CNN construite from scratch ;
+- une version régularisée avec Batch Normalization, Dropout, Early Stopping et L2 ;
+- une approche en transfer learning avec un backbone EfficientNetB0 ;
+- un notebook final de synthèse qui centralise le meilleur pipeline.
 
-## Structure du dépôt
+L'objectif n'est pas de faire de la classification, mais bien de prédire une valeur continue en mois.
+
+## Résultats principaux
+
+Les sorties exécutées dans les notebooks montrent une progression nette entre la baseline et le transfer learning.
+
+### Données traitées
+
+- Images détectées lors de l'exploration initiale : 12 811.
+- Répartition utilisée dans le pipeline final : 10 088 images d'entraînement et 2 523 images de validation.
+- Taille du batch testée dans les notebooks Kaggle : 16.
+
+### Comparaison des modèles
+
+| Modèle | MAE validation | MSE validation | R² validation | Statut |
+| --- | ---: | ---: | ---: | --- |
+| CNN baseline | 33.95 mois | 1 781.33 | non mesuré explicitement | Référence initiale |
+| CNN régularisé | 33.39 mois | 1 742.77 | 0.0161 | Amélioration limitée |
+| Transfer learning EfficientNetB0 | 14.37 mois | 333.74 | 0.8116 | Meilleur modèle |
+
+Le meilleur modèle du projet est donc le pipeline de transfer learning, très supérieur aux modèles entraînés from scratch.
+
+### Export final
+
+- Modèle sauvegardé : models/bone_age_model.keras
+- Backbone utilisé : EfficientNetB0
+- Statut d'export : succès
+
+## Organisation du dépôt
 
 ```text
-data/                  Données à télécharger plus tard, dossier laissé vide pour le moment
-drafts/                Notebooks de brouillon et expérimentations
+drafts/                Notebooks de travail et expérimentations
   01_eda_preprocessing.ipynb
   02_baseline_cnn.ipynb
   03_regularization_tuning.ipynb
   04_transfer_learning.ipynb
-notebooks/             Notebook final propre et commenté
+  kaggle_trial_1.ipynb
+  kaggle_trial_2.ipynb
+notebooks/             Notebook final de synthèse
   final_pipeline_bone_age.ipynb
-streamlit_app/         Application Streamlit bonus
+streamlit_app/         Prototype d'application de démonstration
   app.py
   requirements.txt
 presentation/          Support de soutenance
-  soutenance_dl.pptx
-README.md               Ce fichier
+  README.md
+Readme.md              Vue globale du projet
+notebook_outputs.md    Résumé des sorties extraites des notebooks
 ```
 
-## Rôle des notebooks
+## Données et prétraitement
 
-### 01_eda_preprocessing.ipynb
+Le dataset RSNA Bone Age est volumineux, donc le projet s'appuie sur des générateurs ou des pipelines de type `tf.data` pour éviter de tout charger en mémoire.
 
-Notebook d'exploration des données et de prétraitement. Il sert à comprendre la distribution des âges, vérifier le format des images, tester le redimensionnement, la normalisation et les augmentations de base.
+Les étapes de préparation retenues sont les suivantes :
 
-### 02_baseline_cnn.ipynb
+- téléchargement du dataset depuis Kaggle ;
+- contrôle de la distribution des âges et du genre ;
+- redimensionnement des radiographies à une taille compatible avec la mémoire disponible ;
+- normalisation des pixels via rescaling ;
+- augmentation légère avec rotation, zoom et translation ;
+- exclusion du retournement horizontal, car il inverserait la latéralité de la main.
 
-Première expérience d'apprentissage profond avec un CNN simple entraîné from scratch. Ce notebook sert de baseline pour mesurer les performances brutes du modèle sans régularisation avancée.
+Le notebook d'exploration a aussi servi à vérifier visuellement les radiographies et à valider le format des données avant l'entraînement.
 
-### 03_regularization_tuning.ipynb
+## Notebooks du projet
 
-Version améliorée du CNN baseline avec Batch Normalization, Dropout, Early Stopping et régularisation L2. L'objectif est d'étudier l'impact de ces techniques sur le surapprentissage et la stabilité de l'entraînement.
+### [01_eda_preprocessing.ipynb](drafts/01_eda_preprocessing.ipynb)
 
-### 04_transfer_learning.ipynb
+Notebook d'exploration initiale et de prétraitement. Il sert à comprendre la structure du dataset, observer la distribution cible, afficher des exemples d'images et tester les opérations de nettoyage et de normalisation.
 
-Notebook consacré au transfer learning avec un modèle pré-entraîné comme ResNet50 ou EfficientNet. Il permet de comparer une approche basée sur des poids pré-entraînés avec le CNN construit from scratch.
+### [02_baseline_cnn.ipynb](drafts/02_baseline_cnn.ipynb)
 
-## Démarche recommandée
+Première baseline CNN entraînée from scratch. Cette version permet de mesurer le comportement brut du modèle sans régularisation avancée.
 
-### 1. Préparation et prétraitement
+Résultat observé : validation MAE autour de 33.95 mois.
 
-Le dataset étant volumineux, il faut travailler avec des générateurs ou des pipelines de type tf.data.Dataset ou DataLoader afin d'éviter de tout charger en mémoire.
+### [03_regularization_tuning.ipynb](drafts/03_regularization_tuning.ipynb)
 
-- Télécharger le dataset RSNA Bone Age depuis Kaggle.
-- Vérifier la distribution des âges et du genre.
-- Redimensionner les images, par exemple en 256x256 ou 512x512 selon les ressources disponibles.
-- Normaliser les pixels avec un rescaling adapté au modèle utilisé.
-- Choisir un batch_size compatible avec la RAM et la VRAM.
-- Appliquer une augmentation légère : rotation, zoom, translation.
-- Ne pas utiliser de retournement horizontal, car la main gauche deviendrait une main droite.
+Version améliorée de la baseline avec Batch Normalization, Dropout, Early Stopping et régularisation L2. Ce notebook sert à étudier l'effet de la régularisation sur l'overfitting et la stabilité de l'entraînement.
 
-### 2. Expérimentations
+Résultat observé : validation MAE autour de 33.39 mois, avec une amélioration faible mais réelle par rapport à la baseline.
 
-#### Baseline CNN
+### [04_transfer_learning.ipynb](drafts/04_transfer_learning.ipynb)
 
-Construire un CNN simple avec plusieurs blocs convolutionnels suivis de couches denses.
+Notebook consacré au transfer learning avec un backbone pré-entraîné, puis une phase de fine-tuning légère. C'est l'approche qui s'est révélée la plus efficace sur ce projet.
 
-Objectif : établir une référence de performance et observer le surapprentissage.
+Résultat observé : validation MAE autour de 14.37 mois et R² de 0.8116.
 
-#### Régularisation
+### [final_pipeline_bone_age.ipynb](notebooks/final_pipeline_bone_age.ipynb)
 
-Reprendre la baseline et ajouter :
+Notebook final propre et commenté. Il rassemble le pipeline retenu, les courbes d'apprentissage, les comparaisons de modèles, les prédictions et les visualisations Grad-CAM.
 
-- Batch Normalization après les convolutions.
-- Dropout avant les couches denses.
-- Early Stopping sur val_loss.
-- Régularisation L2 sur les couches denses.
+## Démarche expérimentale
 
-Objectif : montrer l'effet de la régularisation sur les courbes d'entraînement et de validation.
+### 1. Baseline CNN
 
-#### Transfer learning
+Une architecture convolutionnelle simple a été utilisée comme point de départ. L'objectif était d'obtenir une référence de performance et d'observer la capacité du réseau à apprendre sans stratégie de régularisation complexe.
 
-Utiliser un modèle pré-entraîné sur ImageNet, comme ResNet50 ou EfficientNet.
+### 2. Régularisation
 
-- Geler le base model au début.
-- Entraîner uniquement la tête de régression.
-- Puis faire un fine-tuning léger sur les dernières couches avec un learning rate faible.
+La baseline a ensuite été enrichie avec :
 
-## Notebook final
+- Batch Normalization après les blocs convolutionnels ;
+- Dropout avant les couches denses ;
+- Early Stopping sur `val_loss` ;
+- régularisation L2.
 
-Le notebook final dans notebooks/final_pipeline_bone_age.ipynb doit être propre, lisible et centré sur la démonstration du pipeline final.
+Cette étape a réduit le surapprentissage, mais les performances sont restées proches de la baseline.
 
-- Introduction et problématique.
-- Chargement des données, prétraitement et augmentation.
-- Définition des modèles.
-- Entraînement, validation et callbacks.
-- Comparaison des architectures.
-- Interprétation des résultats.
+### 3. Transfer learning
 
-### Métriques et visualisations
+Un modèle pré-entraîné sur ImageNet a ensuite été utilisé, avec une stratégie en deux temps :
 
-- MAE : erreur moyenne absolue en mois.
-- MSE : erreur quadratique moyenne.
-- Courbes de loss train / validation.
-- Scatter plot âge réel vs âge prédit.
-- Grad-CAM pour visualiser les zones d'attention.
+- gel du backbone au début pour entraîner uniquement la tête de régression ;
+- fine-tuning léger des dernières couches avec un faible learning rate.
 
-Si une matrice de confusion ou une courbe ROC est demandée, il est possible de discrétiser l'âge en classes, par exemple :
+Cette stratégie a apporté le gain le plus important, ce qui confirme que les représentations pré-apprises sont très utiles pour ce type de tâche.
 
-- Enfant jeune : moins de 5 ans.
-- Enfant moyen : de 5 à 12 ans.
-- Adolescent : plus de 12 ans.
+## Métriques et visualisations
+
+Les notebooks produisent plusieurs artefacts de suivi et d'interprétation :
+
+- MAE pour mesurer l'erreur moyenne en mois ;
+- MSE pour pénaliser les erreurs plus grandes ;
+- courbes de loss train / validation ;
+- scatter plot âge réel vs âge prédit ;
+- Grad-CAM pour localiser les zones de l'image utilisées par le modèle.
+
+Le pipeline final contient également un suivi du learning rate pendant l'entraînement.
 
 ## Application Streamlit
 
-Le dossier streamlit_app/ peut servir de bonus de présentation.
+Le dossier [streamlit_app/](streamlit_app/) contient une base pour présenter le modèle sous forme d'application interactive.
 
-- Sauvegarder le meilleur modèle au format final .keras si le projet reste sur TensorFlow/Keras. Si une version PyTorch est utilisée, exporter en .pt.
-- Créer une interface d'upload d'image.
-- Prétraiter l'image avant prédiction.
-- Afficher l'âge estimé en mois.
-- Prévoir un fichier requirements.txt avec les dépendances nécessaires.
-- Déployer sur Streamlit Community Cloud ou Hugging Face Spaces.
+Fonctionnalités prévues :
 
-## Plan de soutenance
+- upload d'une radiographie ;
+- prétraitement automatique avant inférence ;
+- affichage de l'âge osseux estimé en mois ;
+- chargement du modèle exporté au format `.keras` ;
+- déploiement possible sur Streamlit Community Cloud ou Hugging Face Spaces.
 
-### Proposition de slides
+Le fichier [streamlit_app/requirements.txt](streamlit_app/requirements.txt) regroupe les dépendances nécessaires à cette interface.
 
-1. Titre, contexte et problématique.
-2. Dataset, distribution et prétraitement.
-3. Architecture CNN régularisée.
-4. Architecture transfer learning.
-5. Résultats et comparaison.
-6. Interprétation avec Grad-CAM.
-7. Démonstration de l'application Streamlit.
-8. Conclusion, limites et pistes d'amélioration.
+## Support de soutenance
 
-### Questions fréquentes
+Le dossier [presentation/](presentation/) contient le support de présentation du projet. Une soutenance claire peut suivre cette trame :
 
-- MLP vs CNN vs RNN : un CNN est adapté aux images grâce aux filtres convolutifs et au partage de poids.
-- Vanishing / exploding gradients : problèmes classiques des réseaux profonds, atténués par ReLU, BatchNorm et les connexions résiduelles.
-- BatchNorm, Dropout et Early Stopping : techniques complémentaires pour stabiliser et régulariser l'entraînement.
-- Fonction de perte et optimiseur : MAE ou MSE pour la régression, Adam comme choix robuste et standard.
+1. contexte, problématique et objectif médical ;
+2. description du dataset et du prétraitement ;
+3. baseline CNN ;
+4. version régularisée ;
+5. transfer learning ;
+6. comparaison des résultats ;
+7. interprétation avec Grad-CAM ;
+8. démo Streamlit ;
+9. conclusion, limites et pistes d'amélioration.
 
-## Points de vigilance
+## Limites et points de vigilance
 
-- L'âge osseux est une tâche de régression continue, pas une classification.
+- L'âge osseux est une régression continue, pas une classification.
 - Les résultats doivent être interprétés avec prudence dans un contexte médical.
-- Le dataset peut contenir des biais liés à l'âge, au genre ou à la qualité des images.
-- Les expériences doivent être reproductibles et bien documentées dans le notebook final.
+- Le dataset peut contenir des biais liés à l'âge, au genre ou à la qualité d'acquisition.
+- Les expériences doivent être reproductibles et bien documentées.
+
+## Interprétation des résultats
+
+Le meilleur modèle sélectionné dans le notebook final est le transfer learning basé sur EfficientNetB0. Le gain de performance par rapport à la baseline montre qu'un backbone pré-entraîné est particulièrement adapté à cette tâche, alors qu'un CNN entraîné from scratch a plus de mal à généraliser sur un dataset médical de cette taille.
+
+En pratique, cela signifie que le projet démontre trois idées importantes :
+
+- les radiographies peuvent être exploitées efficacement avec des CNN ;
+- la régularisation seule ne suffit pas toujours à combler l'écart de performance ;
+- le transfer learning apporte ici le meilleur compromis entre simplicité et précision.
+
+## Pour aller plus loin
+
+1. Tester d'autres backbones pré-entraînés pour comparer leur efficacité.
+2. Raffiner la stratégie d'augmentation et de fine-tuning.
+3. Compléter la démo Streamlit avec une page d'explication des prédictions.
+4. Ajouter un suivi d'expériences plus formel pour faciliter la reproductibilité.
