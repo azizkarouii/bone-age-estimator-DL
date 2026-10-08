@@ -130,10 +130,67 @@ The following outputs were generated but are not embedded here because they are 
 - Predicted-vs-actual scatter plots.
 - Grad-CAM heatmaps from the final pipeline.
 
-## 7. Source Paths
+## 7. `drafts/kaggle_trial_1.ipynb`
+
+Extracted outputs:
+
+```text
+✓ Target normalization stats: mean=127.20, std=40.95
+✓ Train dataset: 10088 samples
+✓ Validation dataset: 2523 samples
+✓ Batch size: 16
+✓ Transfer Learning Model (EfficientNetB0) built
+	Model parameters: 4,420,260
+
+📊 EVALUATION
+============================================================
+Mean Absolute Error (MAE): 33.94 months
+Root Mean Squared Error (RMSE): 42.42 months
+R² Score: -0.0161
+
+Improvement potential: 101.6% variance to explain
+```
+
+Notes:
+- Phase 1 training ran and the notebook reached the evaluation cell.
+- The Grad-CAM cell failed with `NameError: name 'backbone' is not defined`.
+- The save-results cell then failed with `NameError: name 'model' is not defined`.
+
+## 8. `drafts/kaggle_trial_2.ipynb`
+
+Extracted outputs:
+
+```text
+✓ Target normalization stats: mean=127.20, std=40.95
+✓ Train dataset: 10088 samples
+✓ Validation dataset: 2523 samples
+✓ Batch size: 16
+✓ Transfer Learning Model (EfficientNetB0) built
+	Model parameters: 4,420,260
+
+Phase 1 early stopping: epoch 22, best epoch 2.
+Phase 2 early stopping: epoch 21, best epoch 1.
+
+📊 EVALUATION
+============================================================
+Mean Absolute Error (MAE): 33.93 months
+Root Mean Squared Error (RMSE): 42.28 months
+R² Score: -0.0092
+
+Improvement potential: 100.9% variance to explain
+```
+
+Notes:
+- The notebook contains both frozen-backbone training and fine-tuning logs.
+- The evaluation cell ran successfully and produced the metrics above.
+- The final save/results cell is present in the notebook source, but it was not executed in the saved file.
+
+## 9. Source Paths
 
 - [drafts/01_eda_preprocessing.ipynb](drafts/01_eda_preprocessing.ipynb)
 - [drafts/02_baseline_cnn.ipynb](drafts/02_baseline_cnn.ipynb)
 - [drafts/03_regularization_tuning.ipynb](drafts/03_regularization_tuning.ipynb)
 - [drafts/04_transfer_learning.ipynb](drafts/04_transfer_learning.ipynb)
+- [drafts/kaggle_trial_1.ipynb](drafts/kaggle_trial_1.ipynb)
+- [drafts/kaggle_trial_2.ipynb](drafts/kaggle_trial_2.ipynb)
 - [notebooks/final_pipeline_bone_age.ipynb](notebooks/final_pipeline_bone_age.ipynb)
